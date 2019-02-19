@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
+    <link rel="stylesheet" href="./css/style.css"/>
+    <script src='/socket.io/socket.io.js'></script>
+    <script>
+        setInterval(function(){ sendMessage() }, 60000);
+        Notification.requestPermission(function(status) {
+            console.log('Notification permission status:', status);
+        });
+        var edgeSocket = io.connect('http://localhost:3001')
+        var cloudSocket = io.connect('http://localhost:3002')
+
+        edgeSocket.on('cloudMessage', function(data) {
+            displayNotification(data.message+"cloud");
+        });
+
+        edgeSocket.on('edgeMessage', function(data) {
+            displayNotification(data.message);
+        });
+
+        //cloudSocket.on('message', function(data) {
+        //    displayNotification(data.message+"-cloud");
+       // });        
+
+        function sendMessage() {
+            edgeSocket.emit('clientmessage', {message: 'welcome'});
+        }
+
+        function displayNotification(message) {
+            if (Notification.permission == 'granted') {
+              navigator.serviceWorker.getRegistration().then(function(reg) {
+                reg.showNotification(message);
+              });
+            }
+        }
+
+    </script>
+</head>
+  <body>
+    <div class="container-fluid demo-container-full">
+        <div class="header">
+            <h2 class="demo-title">
+                COX Edge
+            </h2>
+            <h3 class="demo-sub-title">
+                Analytics
+            </h3>        
+        </div>
+    </div>
+    <div class="container-fluid">
+        <div class="row demo-container">
+            <div class="col-md-6 col-sm-6 col-xs-12">
+                <div class="stats-header">
+                    <div class="col-md-5 col-sm-5 col-xs-12"><h3>Cloud <span>12%</span></h3><h4>Nverginia <span>192.169.2.10</span></h4></div>
+                    <div class="col-md-5 col-sm-5 col-xs-12"><h3>Edge<span>12%</span></h3><h4>Duke <span>192.169.2.11</span></h4></div>
+                </div>
+                <div class="stats-content">
+                    <div class="col-md-5 col-sm-5 col-xs-12"><p><span>Door Open</span></p><p><span>Sent</span></p><p><span>Recived</span></p></div>
+                    <div class="col-md-5 col-sm-5 col-xs-12"><p><span>Door Open</span></p><p><span>Sent</span></p><p><span>Recived</span></p></div>
+                </div>
+            </div>
+            <div class="col-md-6 col-sm-6 col-xs-12">
+
+            </div>
+        </div>        
+    </div>
+    <!-- jQuery first, then Tether, then Bootstrap JS. -->
+    <script src="https://code.jquery.com/jquery-3.1.1.slim.min.js" integrity="sha384-A7FZj7v+d/sdmMqp/nOQwliLvUsJfDHW+k9Omg/a/EheAdgtzNs3hpfag6Ed950n" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js" integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn" crossorigin="anonymous"></script>
+  </body>
+</html>

@@ -1,0 +1,26 @@
+body{
+    background: #00a2ff;
+}
+.demo-container-full{
+    padding: 0px;
+    border-bottom: 1px solid #FFFFFF;
+}
+.header{
+    padding-top: 20px;
+    padding-bottom: 5px;
+}
+.demo-title{
+    color: #FFFFFF;
+    font-size:28px;
+    text-align: center;
+    font-weight:bold;
+}
+.demo-sub-title{
+    color: #FFFFFF;
+    font-size:16px;
+    text-align: center
+}
+.demo-container{
+    margin:10px auto;
+    width:90%;
+}
