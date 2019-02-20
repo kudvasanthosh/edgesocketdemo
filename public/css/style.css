@@ -21,6 +21,86 @@ body{
     text-align: center
 }
 .demo-container{
-    margin:10px auto;
+    margin:50px auto;
     width:90%;
+}
+.stats-header{
+    background:#FFFFFF;
+}
+.stats-header h3{
+  color:#00a2ff;
+  font-size:24px;
+  font-weight:bold;
+  padding-top: 9px;
+}
+.stats-header h4{
+    color:#777777;
+    font-size:16px;
+    font-weight:bold;
+}
+.event p{
+    margin:0;
+    padding:0px 
+}
+.event-title{
+    color: #FFFFFF;
+    font-weight:bold;
+    font-size:16px;
+}
+.event-sent{
+    color: #FFFFFF;
+    font-size:16px;
+}
+.event-recived{
+    color: #FFFFFF;
+    font-size:16px;
+}
+.stats-content{
+    border:1px solid #FFFFFF;
+}
+.event-list,.event-list li p{
+    padding:0;
+    margin:0; 
+}
+.event-list li{
+    list-style:none ;
+    padding: 10px;
+}
+.event-list li+li{
+   border-top:1px solid #FFFFFF;
+}
+#logs{
+    height: 150px;
+    width: 91.5%;
+    background: #FFFFFF;
+    margin: 0px auto;
+    overflow-y: scroll;
+}
+#logs p{
+    margin: 0;
+    padding: 5px;
+}
+.log-header{
+    font-size: 18px;
+    width: 91.5%;
+    color:#555555;
+    margin: 0px auto;
+    padding: 10px 10px;
+    background: #FFFFFF;
+}
+.stats-content{
+    height: 400px;
+    overflow-y: scroll;
+}
+.log-container{
+    margin-bottom: 50px;
+}
+.btn-container{
+    text-align: center;
+}
+.stop-btn{
+    display: none;
+}
+.timer-button{
+    padding: 20px 80px;
 }

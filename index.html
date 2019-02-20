@@ -9,28 +9,149 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
     <link rel="stylesheet" href="./css/style.css"/>
     <script src='/socket.io/socket.io.js'></script>
+    <script src="./js/moment.js"></script>
+    <script src="./js/moment-timezone.js"></script>
+    <script type="text/javascript">
+      let generationFlag=0;
+      var initTime = new moment()
+      let chart;
+      const eventList = [{ 
+            "id":0,
+            "message": "Door is Open",
+            "type": "door_open"
+        }, {
+            "id":1,    
+            "message": "Glass break detected",
+            "type": "glass_broken"
+        }, {
+            "id":2,    
+            "message": "Motion detected",
+            "type": "motion"
+        }, {
+            "id":3,    
+            "message": "Low battery",
+            "type": "lowBat"
+        }, {
+            "id":4,    
+            "message": "Empty battery",
+            "type": "emptyBat"
+        }, {
+            "id":5,    
+            "message": "No activity",
+            "type": "noActivity"
+        },{
+            "id":6,    
+            "message": "Panic",
+            "type": "panic"
+        }, {
+            "id":7,    
+            "message": "CO Alarm triggered",
+            "type": "co"
+        }, {
+            "id":8,    
+            "message": "Fire alarm triggered",
+            "type": "fire"
+        },{
+            "id":9,    
+            "message": "Flood alarm triggered",
+            "type": "flood"
+        }, {
+            "id":10,    
+            "message": "Disconnected from power supply",
+            "type": "disconnected"
+        }];
+        
+        
+        window.onload = function () {
+          var currentTime = new moment()
+          var duration = moment.duration(initTime.diff(currentTime))
+          chart = new CanvasJS.Chart("chartContainer",
+          {
+            axisX:{
+                title: "",
+                margin:0,
+                lineThickness:0,
+                valueFormatString:" " //comment this to show numeric values
+            },              
+            data: [
+            {        
+              type: "line",
+              showInLegend: true, 
+              legendText: "Edge",
+              dataPoints: [{y:0}]
+            },
+              {        
+              type: "line",
+              showInLegend: true, 
+              legendText: "Cloud",
+              dataPoints: [{y:0}]
+            }
+            ]
+          });
+      
+          chart.render();
+        }
+        </script>    
     <script>
-        setInterval(function(){ sendMessage() }, 60000);
+        setInterval(function(){ sendMessage(generationFlag) }, 5000);
         Notification.requestPermission(function(status) {
             console.log('Notification permission status:', status);
         });
-        var edgeSocket = io.connect('http://localhost:3001')
-        var cloudSocket = io.connect('http://localhost:3002')
+        var edgeSocket = io.connect()
+        var cloudSocket = io.connect('https://cloud-server.us-west.aws.kontena.works/')
+//        var cloudSocket = io.connect('http://localhost:3002/')
 
-        edgeSocket.on('cloudMessage', function(data) {
-            displayNotification(data.message+"cloud");
-        });
-
-        edgeSocket.on('edgeMessage', function(data) {
+        edgeSocket.on('message', function(data) {
+            console.log("edge")
+            data.received=new Date().getTime();
+            chart.options.data[0].dataPoints.push({ y: Math.abs((data.received)-parseInt(data.sent))});
+            chart.render();   
             displayNotification(data.message);
+            addMessages(data,"edge")
         });
 
-        //cloudSocket.on('message', function(data) {
-        //    displayNotification(data.message+"-cloud");
-       // });        
+        cloudSocket.on('message', function(data) {
+            console.log("cloud")
+            data.received=new Date().getTime();
+            chart.options.data[1].dataPoints.push({ y: Math.abs((data.received)-parseInt(data.sent))});
+            chart.render();               
+            addMessages(data,"cloud")
+            displayNotification(data.message);
+        }); 
+        
+        edgeSocket.on('logmessage', function(data) {
+            data.received=new Date().getTime();
+            logMessages(data,"edge")
+        });
 
-        function sendMessage() {
-            edgeSocket.emit('clientmessage', {message: 'welcome'});
+        cloudSocket.on('logmessage', function(data) {
+            data.received=new Date().getTime();
+            logMessages(data,"cloud")
+        }); 
+
+        function sendMessage(generationFlag) {
+            console.log("generationFlag",generationFlag)
+            const messageIndex=Math.floor(Math.random() * 10); 
+            let message= eventList[messageIndex]
+            message.sent=new Date().getTime();
+            if(generationFlag==1){
+                console.log("if generationFlag",generationFlag)
+                edgeSocket.emit('clientmessage',message);
+                cloudSocket.emit('clientmessage',message);
+            }else{
+                console.log("else generationFlag",generationFlag)
+            }
+        }
+
+        function generate(genrateFlag){
+            generationFlag=genrateFlag;
+            if(genrateFlag){
+                $("#stop-btn").show();
+                $("#start-btn").hide();
+            }else{
+                $("#start-btn").show();
+                $("#stop-btn").hide();
+            }
         }
 
         function displayNotification(message) {
@@ -39,6 +160,29 @@
                 reg.showNotification(message);
               });
             }
+        }
+        function addMessages(message,type){  
+            if(type=='cloud'){
+                $("#cloud-list").append(`
+                <li>
+                    <p><span class="event event-title">${message.message}</span></p>
+                    <p><span class="event event-sent">Sent ${moment(message.sent).format('hh:mm:ss.SSS')}</span></p>
+                    <p><span class="event event-recived">Received ${moment(message.received).format('hh:mm:ss.SSS')}</span></p>
+                </li>`)
+            }else{
+                $("#edge-list").append(`
+                <li>
+                    <p><span class="event event-title">${message.message}</span></p>
+                    <p><span class="event event-sent">Sent ${moment(message.sent).format('hh:mm:ss.SSS')}</span></p>
+                    <p><span class="event event-recived">Received ${moment(message.received).format('hh:mm:ss.SSS')}</span></p>
+                </li>`)
+            }
+
+        }
+
+        function logMessages(message,type){
+            message.receivedFrom=type
+            $('#logs').append(`<p>${JSON.stringify(message)}`);     
         }
 
     </script>
@@ -57,23 +201,38 @@
     <div class="container-fluid">
         <div class="row demo-container">
             <div class="col-md-6 col-sm-6 col-xs-12">
-                <div class="stats-header">
-                    <div class="col-md-5 col-sm-5 col-xs-12"><h3>Cloud <span>12%</span></h3><h4>Nverginia <span>192.169.2.10</span></h4></div>
-                    <div class="col-md-5 col-sm-5 col-xs-12"><h3>Edge<span>12%</span></h3><h4>Duke <span>192.169.2.11</span></h4></div>
+                <div class="row stats-header">
+                    <div class="col-md-6 col-sm-6 col-xs-12"><h3>Cloud</h3><h4>NVirginia <span>13.52.79.93</span></h4></div>
+                    <div class="col-md-6 col-sm-6 col-xs-12"><h3>Edge</h3><h4>OKC <span>184.190.253.6</span></h4></div>
                 </div>
-                <div class="stats-content">
-                    <div class="col-md-5 col-sm-5 col-xs-12"><p><span>Door Open</span></p><p><span>Sent</span></p><p><span>Recived</span></p></div>
-                    <div class="col-md-5 col-sm-5 col-xs-12"><p><span>Door Open</span></p><p><span>Sent</span></p><p><span>Recived</span></p></div>
+                <div class="row stats-content">
+                    <div class="col-md-6 col-sm-6 col-xs-12">
+                        <ul id="cloud-list" class="event-list-cloud event-list">
+                        </ul>
+                    </div>   
+                    <div class="col-md-6 col-sm-6 col-xs-12">
+                        <ul id="edge-list" class="event-list-edge event-list">
+                        </ul>
+                    </div>
                 </div>
             </div>
             <div class="col-md-6 col-sm-6 col-xs-12">
-
+                <div id="chartContainer" style="height: 460px; width: 100%;">
             </div>
         </div>        
+    </div>
+    <div class="container-fluid log-container btn-container">
+        <button type="button" class="btn btn-primary timer-button" id="start-btn" onclick="generate(1)">Start</button>
+        <button type="button" class="btn btn-danger timer-button stop-btn" id="stop-btn" onclick="generate(0)">Stop</button>
+    </div>
+    <div class="container-fluid log-container">
+        <h4 class="log-header">Logs</h4>
+        <div id="logs"></div>
     </div>
     <!-- jQuery first, then Tether, then Bootstrap JS. -->
     <script src="https://code.jquery.com/jquery-3.1.1.slim.min.js" integrity="sha384-A7FZj7v+d/sdmMqp/nOQwliLvUsJfDHW+k9Omg/a/EheAdgtzNs3hpfag6Ed950n" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js" integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb" crossorigin="anonymous"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn" crossorigin="anonymous"></script>
-  </body>
+    <script type="text/javascript" src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
+</body>
 </html>

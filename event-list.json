@@ -1,0 +1,45 @@
+[{ 
+    "id":0,
+    "message": "Door is Open",
+    "type": "door_open"
+}, {
+    "id":1,    
+	"message": "Glass break detected",
+	"type": "glass_broken"
+}, {
+    "id":2,    
+	"message": "Motion detected",
+	"type": "motion"
+}, {
+    "id":3,    
+	"message": "Low battery",
+	"type": "lowBat"
+}, {
+    "id":4,    
+	"message": "Empty battery",
+	"type": "emptyBat"
+}, {
+    "id":5,    
+	"message": "No activity",
+	"type": "noActivity"
+},{
+    "id":6,    
+	"message": "Panic",
+	"type": "panic"
+}, {
+    "id":7,    
+	"message": "CO Alarm triggered",
+	"type": "co"
+}, {
+    "id":8,    
+	"message": "Fire alarm triggered",
+	"type": "fire"
+},{
+    "id":9,    
+	"message": "Flood alarm triggered",
+	"type": "flood"
+}, {
+    "id":10,    
+	"message": "Disconnected from power supply",
+	"type": "disconnected"
+}]

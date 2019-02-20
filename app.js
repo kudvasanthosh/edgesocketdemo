@@ -1,22 +1,36 @@
-var http = require('http');
+require('dotenv').config()
+const http = require('http');
 var fs = require('fs');
 const express = require('express');
 const bodyParser = require('body-parser');
-// NEVER use a Sync function except at start-up!
-var index = fs.readFileSync(__dirname + '/index.html');
-// Send index.html to all requests
+const request = require('request');
 const app = express();
 app.use(bodyParser.json());
 app.use(express.static('public'))
 const server = http.createServer(app);
-
+var index = fs.readFileSync(__dirname + '/index.html');
 // Socket.io server listens to our app
 var io = require('socket.io').listen(server);
+const CLOUD_EVENT="door_open";
+const eventList = require('./event-list.json');
 
-// Emit welcome message on connection
 io.on('connection', function(socket) {
-    // Use socket to communicate with this particular client only, sending it it's own id
+    socket.on('clientmessage', function (data) {
+        let message=data;
+        socket.emit('logmessage', message);
+        if(message.type==CLOUD_EVENT){
+            socket.emit('message', message);
+        }
+        request.post({
+            headers: {'content-type' : 'application/json'},
+            url:     process.env.CLOUD_URL+'/save-mesage',
+            body:    JSON.stringify(message)
+          }, function(error, response, body){
+            console.log(body);
+        }) 
+    });
 });
+
 app.get('/', (req, res) => {
     res.writeHead(200, {'Content-Type': 'text/html'});
     res.end(index);
